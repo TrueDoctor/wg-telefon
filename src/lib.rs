@@ -50,6 +50,9 @@ pub extern "C" fn cfree() {
         std::mem::drop(context.read());
     }
 }
+
+/// # Safety
+/// The caller must ensure that the buffer is large enough to hold `buffer_len` samples.
 #[no_mangle]
 pub unsafe extern "C" fn read_samples(buffer: *mut f32, buffer_len: usize) -> isize {
     let context = unsafe { CONTEXT.as_mut() }.unwrap_or_else(|| panic!("Context not initialized"));
@@ -65,11 +68,11 @@ pub unsafe extern "C" fn read_samples(buffer: *mut f32, buffer_len: usize) -> is
     i
 }
 
-/// #Safety
+/// # Safety
+/// The caller must ensure that the buffer is large enough to hold `buffer_len` samples.
 #[no_mangle]
 pub unsafe extern "C" fn write_samples(buffer: *mut f32, buffer_len: usize) -> isize {
-    let mut context =
-        unsafe { CONTEXT.as_mut() }.unwrap_or_else(|| panic!("Context not initialized"));
+    let context = unsafe { CONTEXT.as_mut() }.unwrap_or_else(|| panic!("Context not initialized"));
 
     let data = unsafe { std::slice::from_raw_parts(buffer, buffer_len) };
     let mut i = 0;
