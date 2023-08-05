@@ -3,7 +3,7 @@ use std::{
     thread,
     time::Duration,
 };
-
+mod cowconnect;
 const ISAAK: std::net::SocketAddrV4 =
     std::net::SocketAddrV4::new(std::net::Ipv4Addr::new(192, 168, 12, 94), 1312);
 

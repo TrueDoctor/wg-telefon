@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 pub struct Datagram {
     seq: u16,
     datagram_type: DatagramType,
@@ -9,6 +10,7 @@ const ConnectDatagramID: u8 = 0;
 const DisconnectDatagramID: u8 = 1;
 
 #[repr(u8)]
+#[derive(Debug, PartialEq)]
 pub enum DatagramType {
     Audio(Vec<f32>) = AudioDatagramID,
     Control(ControlType) = ControlDatagramID,
@@ -32,7 +34,7 @@ impl Datagram {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&self.seq.to_be_bytes());
-        bytes.push(self.datagram_type.id());
+        bytes.push(self.id());
         match &self.datagram_type {
             DatagramType::Audio(audio) => {
                 for sample in audio {
@@ -76,6 +78,7 @@ impl Datagram {
 }
 
 #[repr(u8)]
+#[derive(Debug, PartialEq)]
 pub enum ControlType {
     Connect() = ConnectDatagramID,
     Disconnect() = DisconnectDatagramID,
@@ -101,17 +104,37 @@ impl ControlType {
     }
 }
 
-fn filter(list: &[Datagram]) -> Vec<Datagram> {
+fn filter(list: &[Datagram]) -> Vec<&Datagram> {
     let mut seq = list[0].seq;
     let mut output = Vec::new();
-    let modulo = 1 << 16;
     for datagram in list {
-        if (datagram.seq == seq) {
+        if (datagram.seq >= seq) {
             output.push(datagram);
         } else {
             continue;
         }
-        seq = (seq + 1) % modulo;
+        seq = seq.wrapping_add(1);
     }
     output
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_filter() {
+        let from_id = |seq: u16| Datagram {
+            seq,
+            datagram_type: DatagramType::Audio(vec![0.0]),
+        };
+
+        let list = vec![from_id(0), from_id(1), from_id(1), from_id(2), from_id(std::u16::MAX), from_id(0)];
+        let filtered = filter(&list);
+
+        let result = vec![from_id(0), from_id(1), from_id(2), from_id(std::u16::MAX), from_id(0)];
+        
+        for (a, b) in filtered.iter().zip(result.iter()) {
+            assert_eq!(*a, b);
+        }
+    }
 }
