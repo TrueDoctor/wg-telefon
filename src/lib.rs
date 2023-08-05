@@ -39,7 +39,10 @@ pub extern "C" fn cinit(buffer_ms: f32) -> c_int {
         })
     } {
         Ok(_) => 0,
-        Err(_) => 1,
+        Err(error) => {
+            eprintln!("error: {error}");
+            1
+        },
     }
 }
 #[no_mangle]
@@ -90,7 +93,7 @@ type Consumer = ringbuf::Consumer<f32, Arc<ringbuf::SharedRb<f32, Vec<MaybeUnini
 type Producer = ringbuf::Producer<f32, Arc<ringbuf::SharedRb<f32, Vec<MaybeUninit<f32>>>>>;
 
 struct Context {
-    _input_stream: Stream,
+    //_input_stream: Stream,
     _output_stream: Stream,
     c_in: Consumer,
     c_out: Producer,
@@ -102,14 +105,14 @@ pub fn init(config: Opt) -> anyhow::Result<()> {
     let opt = config;
 
     // Find devices.
-    let input_device = if opt.input_device == "default" {
+    /*let input_device = if opt.input_device == "default" {
         host.default_input_device()
     } else {
         host.input_devices()?
             .find(|x| x.name().map(|y| y == opt.input_device).unwrap_or(false))
     }
     .expect("failed to find input device");
-
+*/
     let output_device = if opt.output_device == "default" {
         host.default_output_device()
     } else {
@@ -118,11 +121,11 @@ pub fn init(config: Opt) -> anyhow::Result<()> {
     }
     .expect("failed to find output device");
 
-    println!("Using input device: \"{}\"", input_device.name()?);
+    //println!("Using input device: \"{}\"", input_device.name()?);
     println!("Using output device: \"{}\"", output_device.name()?);
 
     // We'll try and use the same configuration between streams to keep it simple.
-    let config: cpal::StreamConfig = input_device.default_input_config()?.into();
+    let config: cpal::StreamConfig = output_device.default_output_config()?.into();
 
     // Create a delay in case the input and output devices aren't synced.
     let buffer_frames = (opt.buffer_length / 1_000.0) * config.sample_rate.0 as f32;
@@ -167,7 +170,7 @@ pub fn init(config: Opt) -> anyhow::Result<()> {
         "Attempting to build both streams with f32 samples and `{:?}`.",
         config
     );
-    let input_stream = input_device.build_input_stream(&config, input_data_fn, err_fn)?;
+    //let input_stream = input_device.build_input_stream(&config, input_data_fn, err_fn)?;
     let output_stream = output_device.build_output_stream(&config, output_data_fn, err_fn)?;
     println!("Successfully built streams.");
 
@@ -176,14 +179,14 @@ pub fn init(config: Opt) -> anyhow::Result<()> {
         "Starting the input and output streams with `{}` milliseconds of latency.",
         opt.buffer_length
     );
-    input_stream.play()?;
+    //input_stream.play()?;
     output_stream.play()?;
 
     // Run for 3 seconds before closing.
     //println!("Playing for 3 seconds... ");
     //std::thread::sleep(std::time::Duration::from_secs(30));
     let context = Context {
-        _input_stream: input_stream,
+        //_input_stream: input_stream,
         _output_stream: output_stream,
         c_in,
         c_out,
