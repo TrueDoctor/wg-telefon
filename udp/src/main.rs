@@ -2,7 +2,7 @@ mod con_man;
 mod cowconnect;
 
 use std::{
-    net::{SocketAddr, IpAddr, Ipv4Addr, UdpSocket},
+    net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket},
     thread,
     time::Duration,
 };
@@ -26,7 +26,6 @@ fn main() -> std::io::Result<()> {
         //    thread::sleep(Duration::from_millis(100));
         //}
         //let (amt, src) = socket.recv_from(&mut buf[])?;
-
     } // the socket is closed here
     Ok(())
 }

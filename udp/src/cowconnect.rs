@@ -18,10 +18,7 @@ pub enum DatagramType {
 
 impl Datagram {
     pub fn new(seq: u16, datagram_type: DatagramType) -> Self {
-        Self {
-            seq,
-            datagram_type,
-        }
+        Self { seq, datagram_type }
     }
 
     fn id(&self) -> u8 {
@@ -40,10 +37,10 @@ impl Datagram {
                 for sample in audio {
                     bytes.extend_from_slice(&sample.to_be_bytes());
                 }
-            },
+            }
             DatagramType::Control(control) => {
                 bytes.extend_from_slice(&control.to_bytes());
-            },
+            }
         }
         bytes
     }
@@ -60,17 +57,22 @@ impl Datagram {
                 }
                 let mut audio = Vec::new();
                 for i in 3..bytes.len() {
-                    audio.push(f32::from_be_bytes([bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]]));
+                    audio.push(f32::from_be_bytes([
+                        bytes[i],
+                        bytes[i + 1],
+                        bytes[i + 2],
+                        bytes[i + 3],
+                    ]));
                 }
                 DatagramType::Audio(audio)
-            },
+            }
             ControlDatagramID => {
                 if bytes.len() < 3 + 1 {
                     return None;
                 }
                 let control_type = ControlType::from_bytes(&bytes[3..]).unwrap();
                 DatagramType::Control(control_type)
-            },
+            }
             _ => return None,
         };
         Some(Self::new(seq, datagram_type))
