@@ -140,7 +140,7 @@ pub fn init(config: Opt) -> anyhow::Result<()> {
     let input_data_fn = move |data: &[f32], _: &cpal::InputCallbackInfo| {
         let mut output_fell_behind = false;
         for &sample in data {
-            if mic.push(sample).is_err() {
+            if let Err(e) = mic.push(sample) {
                 output_fell_behind = true;
             }
         }
