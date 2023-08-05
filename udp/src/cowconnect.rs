@@ -100,3 +100,18 @@ impl ControlType {
         vec![self.id()]
     }
 }
+
+fn filter(list: &[Datagram]) -> Vec<Datagram> {
+    let mut seq = list[0].seq;
+    let mut output = Vec::new();
+    let modulo = 1 << 16;
+    for datagram in list {
+        if (datagram.seq == seq) {
+            output.push(datagram);
+        } else {
+            continue;
+        }
+        seq = (seq + 1) % modulo;
+    }
+    output
+}
