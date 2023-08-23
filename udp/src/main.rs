@@ -7,6 +7,8 @@ use std::{
     time::Duration,
 };
 
+use con_man::ConnectionManager;
+
 const ISAAK_PEER: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 168, 4, 156)), 1313);
 
 fn main() -> std::io::Result<()> {
