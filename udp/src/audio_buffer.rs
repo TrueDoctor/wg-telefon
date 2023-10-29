@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 
 use crate::cowconnect::SampleType;
 
-#[derive(Default, Debug)]
 pub struct AudioBuffer {
     last_seq: u64,
+    curr_sample: Box<dyn Iterator<Item = f32>>,
     audio_buffer: BTreeMap<u64, Vec<SampleType>>,
 }
 
@@ -13,7 +13,9 @@ impl AudioBuffer {
 
     pub fn new() -> Self {
         Self {
-            ..Default::default()
+            last_seq: 0,
+            curr_sample: Box::new(vec![].into_iter()),
+            audio_buffer: BTreeMap::new(),
         }
     }
 
@@ -33,5 +35,21 @@ impl AudioBuffer {
         };
         self.audio_buffer
             .insert(seq as u64, audio.as_ref().to_vec());
+    }
+
+    pub fn next_sample(&mut self) -> Option<f32> {
+        self.curr_sample.next().or_else(|| {
+            let maybe_iter = self
+                .audio_buffer
+                .pop_first()
+                .map(|(_, v)| Box::new(v.into_iter()));
+
+            if let Some(iter) = maybe_iter {
+                self.curr_sample = iter;
+                return self.next_sample();
+            }
+
+            None
+        })
     }
 }
