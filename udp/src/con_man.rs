@@ -1,10 +1,12 @@
 use std::net::{SocketAddr, UdpSocket};
 use std::time::{Duration, Instant};
 
+use crate::audio_buffer::AudioBuffer;
+
 pub struct Client {
     addr: SocketAddr,
     last_message: Instant,
-    audio_buffer: (),
+    audio_buffer: AudioBuffer,
 }
 
 impl Client {
@@ -12,7 +14,7 @@ impl Client {
         Self {
             addr,
             last_message: Instant::now(),
-            audio_buffer: (),
+            audio_buffer: AudioBuffer::new(),
         }
     }
 }
@@ -23,7 +25,7 @@ pub struct ConnectionManager {
 }
 
 impl ConnectionManager {
-    pub fn new(socket: UdpSocket) -> ConnectionManager {
+    pub fn new(socket: UdpSocket) -> Self {
         ConnectionManager {
             connections: vec![],
             local_socket: socket,
@@ -55,7 +57,7 @@ impl ConnectionManager {
 
     pub fn update_audio_buffer(&mut self, src: SocketAddr, seq: u16, data: &[f32]) {
         if let Some(client) = self.client_mut(&src) {
-            //client.audio_buffer.submit(seq, data);
+            client.audio_buffer.submit(seq, data);
         }
     }
 

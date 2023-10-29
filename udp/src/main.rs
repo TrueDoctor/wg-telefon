@@ -1,3 +1,4 @@
+mod audio_buffer;
 mod con_man;
 mod cowconnect;
 
@@ -18,13 +19,14 @@ fn main() -> std::io::Result<()> {
         // the message, it will be cut off.
         let buf = b"hello world\n";
         connection_man.send_to(buf, &ISAAK_PEER);
-        //for i in 0..100 {
-        //    socket.send_to(buf, ISAAK)?;
-        //    println!("Sent {} bytes", buf.len());
-        //    println!("Sent {}", std::str::from_utf8(buf).unwrap());
-        //    thread::sleep(Duration::from_millis(100));
-        //}
-        //let (amt, src) = socket.recv_from(&mut buf[])?;
+
+        // for i in 0..100 {
+        //     socket.send_to(buf, ISAAK)?;
+        //     println!("Sent {} bytes", buf.len());
+        //     println!("Sent {}", std::str::from_utf8(buf).unwrap());
+        //     thread::sleep(Duration::from_millis(100));
+        // }
+        // let (amt, src) = socket.recv_from(&mut buf[])?;
         let mut buf = [0; 1024];
         let (amt, src) = connection_man.local_socket.recv_from(&mut buf)?;
 

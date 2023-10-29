@@ -4,6 +4,8 @@ pub struct Datagram {
     pub datagram_type: DatagramType,
 }
 
+pub type SampleType = f32;
+
 // Datagram Type Ids
 const AUDIO_DATAGRAM_ID: u8 = 0;
 const CONTROL_DATAGRAM_ID: u8 = 1;
@@ -16,7 +18,7 @@ const HEARTBEAT_DATAGRAM_ID: u8 = 2;
 #[repr(u8)]
 #[derive(Debug, PartialEq)]
 pub enum DatagramType {
-    Audio(Vec<f32>) = AUDIO_DATAGRAM_ID,
+    Audio(Vec<SampleType>) = AUDIO_DATAGRAM_ID,
     Control(ControlType) = CONTROL_DATAGRAM_ID,
 }
 
@@ -67,8 +69,9 @@ impl Datagram {
         let seq = u16::from_be_bytes([bytes[0], bytes[1]]);
         let datagram_type = match bytes[2] {
             AUDIO_DATAGRAM_ID if bytes.len() >= SEQ_HEADER_BYTES + 4 => {
-                let take4 =
-                    |i| f32::from_be_bytes([bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]]);
+                let take4 = |i| {
+                    SampleType::from_be_bytes([bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]])
+                };
                 let remaining_bytes = SEQ_HEADER_BYTES..bytes.len();
                 let audio = remaining_bytes.map(take4).collect();
                 DatagramType::Audio(audio)
