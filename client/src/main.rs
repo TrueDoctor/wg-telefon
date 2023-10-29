@@ -22,9 +22,7 @@ fn main() -> std::io::Result<()> {
     let mut send_datagram = |datagram_type| {
         let datagram = Datagram::new(seq, datagram_type);
         seq = seq.wrapping_add(1);
-        while socket.send(&datagram.to_bytes()).is_err() {
-            std::thread::sleep(Duration::from_millis(10));
-        }
+        socket.send(&datagram.to_bytes());
     };
 
     println!("Sending Connect");
