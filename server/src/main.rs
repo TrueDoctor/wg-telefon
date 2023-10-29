@@ -16,24 +16,24 @@ fn main() -> std::io::Result<()> {
 
     loop {
         // Receive Audio
-        let (amt, src) = connection_man.local_socket.recv_from(&mut buf)?;
-
-        if let Some(datagram) = cowconnect::Datagram::from_bytes(&buf[..amt]) {
-            match datagram.datagram_type {
-                DatagramType::Control(ControlType::Connect) => {
-                    println!("Received Connect");
-                    connection_man.connect(src);
-                }
-                DatagramType::Control(ControlType::Disconnect) => {
-                    println!("Received Connect");
-                    connection_man.connect(src);
-                }
-                DatagramType::Control(ControlType::Heartbeat) => {
-                    connection_man.heartbeat(src);
-                }
-                DatagramType::Audio(data) => {
-                    connection_man.heartbeat(src);
-                    connection_man.update_audio_buffer(src, datagram.seq, &data);
+        if let Ok((amt, src)) = connection_man.local_socket.recv_from(&mut buf) {
+            if let Some(datagram) = cowconnect::Datagram::from_bytes(&buf[..amt]) {
+                match datagram.datagram_type {
+                    DatagramType::Control(ControlType::Connect) => {
+                        println!("Received Connect");
+                        connection_man.connect(src);
+                    }
+                    DatagramType::Control(ControlType::Disconnect) => {
+                        println!("Received Connect");
+                        connection_man.connect(src);
+                    }
+                    DatagramType::Control(ControlType::Heartbeat) => {
+                        connection_man.heartbeat(src);
+                    }
+                    DatagramType::Audio(data) => {
+                        connection_man.heartbeat(src);
+                        connection_man.update_audio_buffer(src, datagram.seq, &data);
+                    }
                 }
             }
         }

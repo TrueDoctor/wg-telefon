@@ -86,7 +86,7 @@ impl ConnectionManager {
                 .send_to(&datagram.to_bytes(), client.addr)
                 .is_err()
             {
-                println!("Failed to send audio to {}", client.addr);
+                //println!("Failed to send audio to {}", client.addr);
             };
         }
     }
