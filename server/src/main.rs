@@ -9,6 +9,7 @@ use cowconnect::{ControlType, DatagramType};
 
 fn main() -> std::io::Result<()> {
     let socket = UdpSocket::bind("0.0.0.0:1312")?;
+    socket.set_nonblocking(true)?;
     let mut connection_man = ConnectionManager::new(socket);
 
     let mut buf = [0; 1024];

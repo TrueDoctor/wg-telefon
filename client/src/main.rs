@@ -46,17 +46,17 @@ fn main() -> std::io::Result<()> {
             if amt == 0 {
                 continue;
             }
-            println!("Received {} bytes ", amt);
+            //println!("Received {} bytes ", amt);
             let Some(datagram) = Datagram::from_bytes(&buf[..amt])  else { continue };
             if let DatagramType::Audio(data) = datagram.datagram_type {
                 // Save Audio to Buffer
                 audio_buffer.submit(datagram.seq, data);
-                println!("available_samples: {}", audio_buffer.available_samples());
+                //println!("available_samples: {}", audio_buffer.available_samples());
             }
         }
 
         // Get Audio Samples
-        let mut samples = [0f32; 512];
+        let mut samples = [0f32; 1024];
         let mut index = 0;
         for sample in samples.iter_mut() {
             if let Some(s) = audio_buffer.next_sample() {
