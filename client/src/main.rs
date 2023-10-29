@@ -1,3 +1,4 @@
+use audio::Options;
 use protocol::{
     audio_buffer::AudioBuffer,
     cowconnect::{ControlType, Datagram, DatagramType},
@@ -29,8 +30,10 @@ fn main() -> std::io::Result<()> {
     println!("Sending Connect");
     send_datagram(DatagramType::Control(ControlType::Connect));
 
-    let mut options = audio::Options::default();
-    options.buffer_length = 100.;
+    let options = Options {
+        buffer_length: 100.,
+        ..Default::default()
+    };
     let mut context = audio::create_context(options).expect("Failed to create audio context");
 
     let mut buf = [0u8; 2048];
@@ -48,6 +51,7 @@ fn main() -> std::io::Result<()> {
             if let DatagramType::Audio(data) = datagram.datagram_type {
                 // Save Audio to Buffer
                 audio_buffer.submit(datagram.seq, data);
+                println!("available_samples: {}", audio_buffer.available_samples());
             }
         }
 

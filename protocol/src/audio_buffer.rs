@@ -59,6 +59,10 @@ impl AudioBuffer {
             None
         })
     }
+
+    pub fn available_samples(&self) -> usize {
+        self.audio_buffer.values().map(|x| x.len()).sum()
+    }
 }
 
 impl Default for AudioBuffer {
