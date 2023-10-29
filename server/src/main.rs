@@ -1,11 +1,11 @@
-mod audio_buffer;
 mod con_man;
-mod cowconnect;
+
+pub use protocol::{audio_buffer, cowconnect};
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 
-use crate::cowconnect::{ControlType, DatagramType};
 use con_man::ConnectionManager;
+use cowconnect::{ControlType, DatagramType};
 
 const ISAAK_PEER: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 168, 4, 156)), 1313);
 
