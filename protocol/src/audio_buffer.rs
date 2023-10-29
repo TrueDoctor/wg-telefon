@@ -14,7 +14,7 @@ impl AudioBuffer {
     pub fn new() -> Self {
         Self {
             last_seq: 0,
-            curr_sample: Box::new(vec![].into_iter()),
+            curr_sample: Box::new(Vec::new().into_iter()),
             audio_buffer: BTreeMap::new(),
         }
     }
@@ -58,5 +58,11 @@ impl AudioBuffer {
 
             None
         })
+    }
+}
+
+impl Default for AudioBuffer {
+    fn default() -> Self {
+        Self::new()
     }
 }
