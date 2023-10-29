@@ -109,9 +109,9 @@ impl ConnectionManager {
         let mut mixed_samples = vec![empty; samples.len()];
         for (client, mixed) in mixed_samples.iter_mut().enumerate() {
             for (stream_id, samples) in samples.iter().enumerate() {
-                if stream_id == client {
+                /*   if stream_id == client {
                     continue;
-                }
+                }*/
                 for (i, sample) in samples.iter().enumerate() {
                     mixed[i] += *sample;
                 }
