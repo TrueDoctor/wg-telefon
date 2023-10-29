@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub struct Datagram {
-    seq: u16,
-    datagram_type: DatagramType,
+    pub seq: u16,
+    pub datagram_type: DatagramType,
 }
 
 // Datagram Type Ids
@@ -25,7 +25,7 @@ pub enum DatagramType {
 pub enum ControlType {
     Connect = CONNECT_DATAGRAM_ID,
     Disconnect = DISCONNECT_DATAGRAM_ID,
-    Hearbeat = HEARTBEAT_DATAGRAM_ID,
+    Heartbeat = HEARTBEAT_DATAGRAM_ID,
 }
 
 impl Datagram {
@@ -97,7 +97,7 @@ impl ControlType {
         match self {
             Self::Connect => CONNECT_DATAGRAM_ID,
             Self::Disconnect => DISCONNECT_DATAGRAM_ID,
-            Self::Hearbeat => HEARTBEAT_DATAGRAM_ID,
+            Self::Heartbeat => HEARTBEAT_DATAGRAM_ID,
         }
     }
 

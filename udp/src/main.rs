@@ -1,12 +1,9 @@
 mod con_man;
 mod cowconnect;
 
-use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket},
-    thread,
-    time::Duration,
-};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 
+use crate::cowconnect::{ControlType, DatagramType};
 use con_man::ConnectionManager;
 
 const ISAAK_PEER: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 168, 4, 156)), 1313);
@@ -28,6 +25,30 @@ fn main() -> std::io::Result<()> {
         //    thread::sleep(Duration::from_millis(100));
         //}
         //let (amt, src) = socket.recv_from(&mut buf[])?;
+        let mut buf = [0; 1024];
+        let (amt, src) = connection_man.local_socket.recv_from(&mut buf)?;
+
+        if let Some(datagram) = cowconnect::Datagram::from_bytes(&buf[..amt]) {
+            println!("Received {} bytes from {}", amt, src);
+            println!("Received {:?}", datagram);
+            match datagram.datagram_type {
+                DatagramType::Control(ControlType::Connect) => {
+                    println!("Received Connect");
+                    connection_man.connect(src);
+                }
+                DatagramType::Control(ControlType::Disconnect) => {
+                    println!("Received Connect");
+                    connection_man.connect(src);
+                }
+                DatagramType::Control(ControlType::Heartbeat) => {
+                    connection_man.heartbeat(src);
+                }
+                DatagramType::Audio(data) => {
+                    connection_man.update_audio_buffer(src, datagram.seq, &data);
+                }
+                _ => println!("Received something else"),
+            }
+        }
     } // the socket is closed here
     Ok(())
 }
