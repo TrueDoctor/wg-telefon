@@ -23,6 +23,7 @@ fn main() -> std::io::Result<()> {
         let datagram = Datagram::new(seq, datagram_type);
         seq = seq.wrapping_add(1);
         while socket.send(&datagram.to_bytes()).is_err() {
+            println!("Failed to send datagram");
             std::thread::sleep(Duration::from_millis(10));
         }
     };
@@ -75,7 +76,7 @@ fn main() -> std::io::Result<()> {
         // Read Audio Samples
         let sample_count = context.read_samples(&mut send_buf[send_buf_offset..]);
         send_buf_offset += sample_count;
-        if send_buf_offset > 512 {
+        if send_buf_offset > 128 {
             // Send Audio
             send_buf_offset = 0;
             send_datagram(DatagramType::Audio(send_buf[..sample_count].to_vec()));

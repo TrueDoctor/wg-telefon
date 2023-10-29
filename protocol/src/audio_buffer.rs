@@ -33,6 +33,7 @@ impl AudioBuffer {
             }
             _ => seq as i64,
         };
+        self.last_seq = seq as u64;
         self.audio_buffer
             .insert(seq as u64, audio.as_ref().to_vec());
     }
