@@ -29,7 +29,8 @@ fn main() -> std::io::Result<()> {
     println!("Sending Connect");
     send_datagram(DatagramType::Control(ControlType::Connect));
 
-    let options = audio::Options::default();
+    let mut options = audio::Options::default();
+    options.buffer_length = 100.;
     let mut context = audio::create_context(options).expect("Failed to create audio context");
 
     let mut buf = [0u8; 2048];
