@@ -36,6 +36,8 @@ fn main() -> std::io::Result<()> {
     };
     let mut context = audio::create_context(options).expect("Failed to create audio context");
 
+    let mut send_buf = [0f32; 2048];
+    let mut send_buf_offset = 0;
     let mut buf = [0u8; 2048];
     loop {
         // Send Heartbeat
@@ -71,10 +73,12 @@ fn main() -> std::io::Result<()> {
         context.write_samples(&samples[..index]);
 
         // Read Audio Samples
-        let sample_count = context.read_samples(&mut samples);
-        if sample_count > 1024 {
+        let sample_count = context.read_samples(&mut send_buf[send_buf_offset..]);
+        send_buf_offset += sample_count;
+        if send_buf_offset > 512 {
             // Send Audio
-            send_datagram(DatagramType::Audio(samples[..sample_count].to_vec()));
+            send_buf_offset = 0;
+            send_datagram(DatagramType::Audio(send_buf[..sample_count].to_vec()));
         }
 
         std::thread::sleep(Duration::from_micros(100));
