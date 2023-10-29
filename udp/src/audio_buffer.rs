@@ -4,7 +4,7 @@ use crate::cowconnect::SampleType;
 
 pub struct AudioBuffer {
     last_seq: u64,
-    curr_sample: Box<dyn Iterator<Item = f32>>,
+    curr_sample: Box<dyn Iterator<Item = SampleType>>,
     audio_buffer: BTreeMap<u64, Vec<SampleType>>,
 }
 
@@ -37,6 +37,13 @@ impl AudioBuffer {
             .insert(seq as u64, audio.as_ref().to_vec());
     }
 
+    /// Resets the AudioBuffer to the initial state
+    pub fn clear(&mut self) {
+        self.audio_buffer = BTreeMap::new();
+        self.curr_sample = Box::new(vec![].into_iter());
+        self.last_seq = 0;
+    }
+
     pub fn next_sample(&mut self) -> Option<f32> {
         self.curr_sample.next().or_else(|| {
             let maybe_iter = self
@@ -46,7 +53,7 @@ impl AudioBuffer {
 
             if let Some(iter) = maybe_iter {
                 self.curr_sample = iter;
-                return self.next_sample();
+                return self.curr_sample.next();
             }
 
             None

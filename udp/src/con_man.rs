@@ -47,6 +47,7 @@ impl ConnectionManager {
             self.send_to(buf, &client.addr);
         }
     }
+
     pub fn client(&self, addr: &SocketAddr) -> Option<&Client> {
         self.connections.iter().find(|c| c.addr == *addr)
     }
