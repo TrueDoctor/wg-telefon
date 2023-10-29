@@ -4,16 +4,28 @@ pub struct Datagram {
     datagram_type: DatagramType,
 }
 
-const AudioDatagramID: u8 = 0;
-const ControlDatagramID: u8 = 1;
-const ConnectDatagramID: u8 = 0;
-const DisconnectDatagramID: u8 = 1;
+// Datagram Type Ids
+const AUDIO_DATAGRAM_ID: u8 = 0;
+const CONTROL_DATAGRAM_ID: u8 = 1;
+
+// Control Type Ids
+const CONNECT_DATAGRAM_ID: u8 = 0;
+const DISCONNECT_DATAGRAM_ID: u8 = 1;
+const HEARTBEAT_DATAGRAM_ID: u8 = 2;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq)]
 pub enum DatagramType {
-    Audio(Vec<f32>) = AudioDatagramID,
-    Control(ControlType) = ControlDatagramID,
+    Audio(Vec<f32>) = AUDIO_DATAGRAM_ID,
+    Control(ControlType) = CONTROL_DATAGRAM_ID,
+}
+
+#[repr(u8)]
+#[derive(Debug, PartialEq)]
+pub enum ControlType {
+    Connect = CONNECT_DATAGRAM_ID,
+    Disconnect = DISCONNECT_DATAGRAM_ID,
+    Hearbeat = HEARTBEAT_DATAGRAM_ID,
 }
 
 impl Datagram {
@@ -23,8 +35,8 @@ impl Datagram {
 
     fn id(&self) -> u8 {
         match &self.datagram_type {
-            DatagramType::Audio(_) => AudioDatagramID,
-            DatagramType::Control(_) => ControlDatagramID,
+            DatagramType::Audio(_) => AUDIO_DATAGRAM_ID,
+            DatagramType::Control(_) => CONTROL_DATAGRAM_ID,
         }
     }
 
@@ -46,31 +58,23 @@ impl Datagram {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() < 3 {
+        const SEQ_HEADER_BYTES: usize = 3;
+
+        if bytes.len() < SEQ_HEADER_BYTES {
             return None;
         }
+
         let seq = u16::from_be_bytes([bytes[0], bytes[1]]);
         let datagram_type = match bytes[2] {
-            AudioDatagramID => {
-                if bytes.len() < 3 + 4 {
-                    return None;
-                }
-                let mut audio = Vec::new();
-                for i in 3..bytes.len() {
-                    audio.push(f32::from_be_bytes([
-                        bytes[i],
-                        bytes[i + 1],
-                        bytes[i + 2],
-                        bytes[i + 3],
-                    ]));
-                }
+            AUDIO_DATAGRAM_ID if bytes.len() >= SEQ_HEADER_BYTES + 4 => {
+                let take4 =
+                    |i| f32::from_be_bytes([bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]]);
+                let remaining_bytes = SEQ_HEADER_BYTES..bytes.len();
+                let audio = remaining_bytes.map(take4).collect();
                 DatagramType::Audio(audio)
             }
-            ControlDatagramID => {
-                if bytes.len() < 3 + 1 {
-                    return None;
-                }
-                let control_type = ControlType::from_bytes(&bytes[3..]).unwrap();
+            CONTROL_DATAGRAM_ID if bytes.len() >= SEQ_HEADER_BYTES + 1 => {
+                let control_type = ControlType::from_bytes(&bytes[SEQ_HEADER_BYTES..]).unwrap();
                 DatagramType::Control(control_type)
             }
             _ => return None,
@@ -79,25 +83,21 @@ impl Datagram {
     }
 }
 
-#[repr(u8)]
-#[derive(Debug, PartialEq)]
-pub enum ControlType {
-    Connect() = ConnectDatagramID,
-    Disconnect() = DisconnectDatagramID,
-}
-
 impl ControlType {
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
         match bytes[0] {
-            ConnectDatagramID => Some(Self::Connect()),
-            DisconnectDatagramID => Some(Self::Disconnect()),
+            CONNECT_DATAGRAM_ID => Some(Self::Connect),
+            DISCONNECT_DATAGRAM_ID => Some(Self::Disconnect),
             _ => None,
         }
     }
+
+    #[inline]
     fn id(&self) -> u8 {
         match self {
-            Self::Connect() => ConnectDatagramID,
-            Self::Disconnect() => DisconnectDatagramID,
+            Self::Connect => CONNECT_DATAGRAM_ID,
+            Self::Disconnect => DISCONNECT_DATAGRAM_ID,
+            Self::Hearbeat => HEARTBEAT_DATAGRAM_ID,
         }
     }
 
@@ -110,11 +110,11 @@ fn filter(list: &[Datagram]) -> Vec<&Datagram> {
     let mut seq = list[0].seq;
     let mut output = Vec::new();
     for datagram in list {
-        if (datagram.seq >= seq) {
-            output.push(datagram);
-        } else {
+        if datagram.seq < seq {
             continue;
         }
+
+        output.push(datagram);
         seq = seq.wrapping_add(1);
     }
     output
@@ -130,11 +130,24 @@ mod test {
             datagram_type: DatagramType::Audio(vec![0.0]),
         };
 
-        let list = vec![from_id(0), from_id(1), from_id(1), from_id(2), from_id(std::u16::MAX), from_id(0)];
+        let list = vec![
+            from_id(0),
+            from_id(1),
+            from_id(1),
+            from_id(2),
+            from_id(std::u16::MAX),
+            from_id(0),
+        ];
         let filtered = filter(&list);
 
-        let result = vec![from_id(0), from_id(1), from_id(2), from_id(std::u16::MAX), from_id(0)];
-        
+        let result = vec![
+            from_id(0),
+            from_id(1),
+            from_id(2),
+            from_id(std::u16::MAX),
+            from_id(0),
+        ];
+
         for (a, b) in filtered.iter().zip(result.iter()) {
             assert_eq!(*a, b);
         }
