@@ -69,11 +69,11 @@ impl Datagram {
         let seq = u16::from_be_bytes([bytes[0], bytes[1]]);
         let datagram_type = match bytes[2] {
             AUDIO_DATAGRAM_ID if bytes.len() >= SEQ_HEADER_BYTES + 4 => {
-                let take4 = |i| {
-                    SampleType::from_be_bytes([bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]])
-                };
-                let remaining_bytes = SEQ_HEADER_BYTES..bytes.len();
-                let audio = remaining_bytes.map(take4).collect();
+                let audio = bytes[SEQ_HEADER_BYTES..]
+                    .chunks_exact(4)
+                    .flat_map(TryInto::try_into)
+                    .map(SampleType::from_be_bytes)
+                    .collect::<Vec<_>>();
                 DatagramType::Audio(audio)
             }
             CONTROL_DATAGRAM_ID if bytes.len() > SEQ_HEADER_BYTES => {

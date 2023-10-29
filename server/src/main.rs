@@ -2,20 +2,14 @@ mod con_man;
 
 pub use protocol::{audio_buffer, cowconnect};
 
-use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket},
-    time::Duration,
-};
+use std::{net::UdpSocket, time::Duration};
 
 use con_man::ConnectionManager;
 use cowconnect::{ControlType, DatagramType};
 
-const ISAAK_PEER: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 168, 4, 156)), 1313);
-
 fn main() -> std::io::Result<()> {
     let socket = UdpSocket::bind("0.0.0.0:1312")?;
     let mut connection_man = ConnectionManager::new(socket);
-    connection_man.connect(ISAAK_PEER);
 
     let mut buf = [0; 1024];
 
