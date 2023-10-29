@@ -14,8 +14,6 @@ use ringbuf::HeapRb;
 use std::mem::MaybeUninit;
 use std::sync::Arc;
 
-static mut CONTEXT: Option<Context> = None;
-
 #[derive(Debug)]
 pub struct Options {
     /// The input audio device to use
@@ -24,8 +22,18 @@ pub struct Options {
     /// The output audio device to use
     pub output_device: String,
 
-    /// Specify the delay between input and output
+    /// Specify the delay between input and output in ms
     pub buffer_length: f32,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            input_device: Default::default(),
+            output_device: Default::default(),
+            buffer_length: 30.,
+        }
+    }
 }
 
 type Consumer = ringbuf::Consumer<f32, Arc<ringbuf::SharedRb<f32, Vec<MaybeUninit<f32>>>>>;
@@ -77,7 +85,7 @@ pub fn create_context(config: Options) -> anyhow::Result<Context> {
     let input_data_fn = move |data: &[f32], _: &cpal::InputCallbackInfo| {
         let mut output_fell_behind = false;
         for &sample in data {
-            if let Err(e) = mic.push(sample) {
+            if let Err(_) = mic.push(sample) {
                 output_fell_behind = true;
             }
         }
