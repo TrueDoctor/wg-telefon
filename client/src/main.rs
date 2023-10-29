@@ -72,13 +72,12 @@ fn main() -> std::io::Result<()> {
 
         // Read Audio Samples
         let sample_count = context.read_samples(&mut samples);
-        if sample_count > 128 {
+        if sample_count > 1024 {
             // Send Audio
             send_datagram(DatagramType::Audio(samples[..sample_count].to_vec()));
         }
 
         std::thread::sleep(Duration::from_micros(100));
-
     }
 
     //send_datagram(DatagramType::Control(ControlType::Disconnect));

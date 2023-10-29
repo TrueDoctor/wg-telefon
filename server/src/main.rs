@@ -2,7 +2,7 @@ mod con_man;
 
 pub use protocol::{audio_buffer, cowconnect};
 
-use std::{net::UdpSocket, time::Duration};
+use std::{net::UdpSocket, thread, time::Duration};
 
 use con_man::ConnectionManager;
 use cowconnect::{ControlType, DatagramType};
@@ -37,6 +37,7 @@ fn main() -> std::io::Result<()> {
                 }
             }
         }
+        thread::sleep(Duration::from_micros(100));
 
         // Purge Connections
         connection_man.purge_connections(Duration::from_secs(5));
