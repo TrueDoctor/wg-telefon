@@ -29,8 +29,8 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            input_device: Default::default(),
-            output_device: Default::default(),
+            input_device: "default".to_string(),
+            output_device: "default".to_string(),
             buffer_length: 30.,
         }
     }
