@@ -5,11 +5,17 @@ use protocol::{
 use std::{net::UdpSocket, time::Duration};
 
 fn main() -> std::io::Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:1312")?;
+    let input = std::env::args().nth(1);
+    let socket = UdpSocket::bind("0.0.0.0:1312")?;
     let mut audio_buffer = AudioBuffer::new();
 
+    let addr = input.unwrap_or("192.168.4.131:1312".to_string());
+
     socket.set_nonblocking(true)?;
-    socket.connect("192.168.4.131:1312")?;
+
+    println!("Connectiong to: {addr}");
+    socket.connect(addr)?;
+    println!("Connected");
 
     let mut seq = 0;
     let mut send_datagram = |datagram_type| {
@@ -20,6 +26,7 @@ fn main() -> std::io::Result<()> {
         }
     };
 
+    println!("Sending Connect");
     send_datagram(DatagramType::Control(ControlType::Connect));
 
     let options = audio::Options::default();
