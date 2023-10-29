@@ -73,6 +73,9 @@ impl ConnectionManager {
         let samples = self.gather_samples();
         let mixed_samples = self.mix_samples(samples);
         for (client, samples) in self.connections.iter_mut().zip(mixed_samples) {
+            if samples.is_empty() {
+                return;
+            }
             let datagram = protocol::cowconnect::Datagram::new(
                 client.seq,
                 protocol::cowconnect::DatagramType::Audio(samples),

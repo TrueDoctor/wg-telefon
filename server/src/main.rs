@@ -18,8 +18,6 @@ fn main() -> std::io::Result<()> {
         let (amt, src) = connection_man.local_socket.recv_from(&mut buf)?;
 
         if let Some(datagram) = cowconnect::Datagram::from_bytes(&buf[..amt]) {
-            println!("Received {} bytes from {}", amt, src);
-            println!("Received {:?}", datagram);
             match datagram.datagram_type {
                 DatagramType::Control(ControlType::Connect) => {
                     println!("Received Connect");
@@ -33,6 +31,7 @@ fn main() -> std::io::Result<()> {
                     connection_man.heartbeat(src);
                 }
                 DatagramType::Audio(data) => {
+                    connection_man.heartbeat(src);
                     connection_man.update_audio_buffer(src, datagram.seq, &data);
                 }
             }
