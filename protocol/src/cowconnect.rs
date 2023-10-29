@@ -76,8 +76,8 @@ impl Datagram {
                 let audio = remaining_bytes.map(take4).collect();
                 DatagramType::Audio(audio)
             }
-            CONTROL_DATAGRAM_ID if bytes.len() >= SEQ_HEADER_BYTES + 1 => {
-                let control_type = ControlType::from_bytes(&bytes[SEQ_HEADER_BYTES..]).unwrap();
+            CONTROL_DATAGRAM_ID if bytes.len() > SEQ_HEADER_BYTES => {
+                let Some(control_type) = ControlType::from_bytes(&bytes[SEQ_HEADER_BYTES..]) else { return None };
                 DatagramType::Control(control_type)
             }
             _ => return None,
@@ -91,6 +91,7 @@ impl ControlType {
         match bytes[0] {
             CONNECT_DATAGRAM_ID => Some(Self::Connect),
             DISCONNECT_DATAGRAM_ID => Some(Self::Disconnect),
+            HEARTBEAT_DATAGRAM_ID => Some(Self::Heartbeat),
             _ => None,
         }
     }
