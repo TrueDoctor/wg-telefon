@@ -80,8 +80,6 @@ fn main() -> std::io::Result<()> {
             send_buf_offset = 0;
             send_datagram(DatagramType::Audio(send_buf[..sample_count].to_vec()));
         }
-
-        std::thread::sleep(Duration::from_micros(100));
     }
 
     //send_datagram(DatagramType::Control(ControlType::Disconnect));
