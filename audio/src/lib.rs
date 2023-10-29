@@ -95,8 +95,18 @@ pub fn create_context(config: Options) -> anyhow::Result<Context> {
     };
 
     let output_data_fn = move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+        let mut input_fell_behind = false;
         for sample in data {
-            *sample = speaker.pop().unwrap_or(0.0);
+            *sample = match speaker.pop() {
+                Some(s) => s,
+                None => {
+                    input_fell_behind = true;
+                    0.0
+                }
+            };
+        }
+        if input_fell_behind {
+            eprintln!("input stream fell behind: try increasing latency");
         }
     };
 
