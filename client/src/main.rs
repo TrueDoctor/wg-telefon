@@ -7,10 +7,10 @@ use std::{net::UdpSocket, time::Duration};
 
 fn main() -> std::io::Result<()> {
     let input = std::env::args().nth(1);
-    let socket = UdpSocket::bind("0.0.0.0:1312")?;
+    let socket = UdpSocket::bind("0.0.0.0:1313")?;
     let mut audio_buffer = AudioBuffer::new();
 
-    let addr = input.unwrap_or("192.168.4.131:1312".to_string());
+    let addr = input.unwrap_or("127.0.0.1:1312".to_string());
 
     socket.set_nonblocking(true)?;
 
@@ -39,7 +39,7 @@ fn main() -> std::io::Result<()> {
 
     let mut send_buf = [0f32; 2048];
     let mut send_buf_offset = 0;
-    let mut buf = [0u8; 2048];
+    let mut buf = [0u8; u16::MAX as usize];
     loop {
         // Send Heartbeat
         send_datagram(DatagramType::Control(ControlType::Heartbeat));
@@ -52,6 +52,7 @@ fn main() -> std::io::Result<()> {
             //println!("Received {} bytes ", amt);
             let Some(datagram) = Datagram::from_bytes(&buf[..amt])  else { continue };
             if let DatagramType::Audio(data) = datagram.datagram_type {
+                println!("Received {} Audio samples", data.len());
                 // Save Audio to Buffer
                 audio_buffer.submit(datagram.seq, data);
                 //println!("available_samples: {}", audio_buffer.available_samples());
@@ -80,6 +81,7 @@ fn main() -> std::io::Result<()> {
             // Send Audio
             send_buf_offset = 0;
             send_datagram(DatagramType::Audio(send_buf[..sample_count].to_vec()));
+            println!("Sent {} Audio samples", sample_count);
         }
 
         std::thread::sleep(Duration::from_millis(1));

@@ -76,6 +76,7 @@ impl ConnectionManager {
             if samples.is_empty() {
                 return;
             }
+            println!("Sending {} samples to {}", samples.len(), client.addr);
             let datagram = protocol::cowconnect::Datagram::new(
                 client.seq,
                 protocol::cowconnect::DatagramType::Audio(samples),

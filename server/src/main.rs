@@ -12,7 +12,7 @@ fn main() -> std::io::Result<()> {
     socket.set_nonblocking(true)?;
     let mut connection_man = ConnectionManager::new(socket);
 
-    let mut buf = [0; 1024];
+    let mut buf = [0; u16::MAX as usize];
 
     loop {
         // Receive Audio
